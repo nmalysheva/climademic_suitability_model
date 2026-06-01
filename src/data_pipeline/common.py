@@ -1,4 +1,4 @@
-# src/data_pipeline/training/common.py
+# src/data_pipeline/common.py
 from pathlib import Path
 import numpy as np
 from shapely import Polygon

@@ -1,3 +1,4 @@
+# src/data_pipeline/worldwide/extract_population.py
 import rasterio as rs
 import numpy as np
 from shapely import box

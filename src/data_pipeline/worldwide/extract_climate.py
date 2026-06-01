@@ -1,4 +1,4 @@
-# src/data_pipeline/global/common.py
+# src/data_pipeline/worldwide/extract_climate.py
 import xarray as xr
 import numpy as np
 
