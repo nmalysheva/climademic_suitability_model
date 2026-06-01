@@ -72,6 +72,7 @@ def extract_population_features(ghsl_dir_path, mask_gdf):
         start_year_block = ghsl_years[i]
         end_year_block   = ghsl_years[i + 1]
 
+        #read files corresponding to selected years
         ghsl_start_name = get_file(ghsl_dir, f"*_E{start_year_block}_*")
         ghsl_end_name = get_file(ghsl_dir, f"*_E{end_year_block}_*")
         
@@ -90,8 +91,7 @@ def extract_population_features(ghsl_dir_path, mask_gdf):
                                 target_year,),
                             axis=1,)
                 else:
-                    print("no data ", target_year)
-                print(result)
+                    print(f"no observation data for {target_year}")
                 ghsl_gdf.loc[year_mask, feature_cols] = result[feature_cols]
 
     return ghsl_gdf
