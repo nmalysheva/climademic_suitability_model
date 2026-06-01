@@ -12,8 +12,8 @@ _GEOD = Geod(ellps="WGS84")
 
 def _drop_only_water(dataframe):
     mask = ~((dataframe[['Ocean', 'Water']].ne(0.0).any(axis=1)) & (dataframe[['Urban', 'Cropland', 'Pasture', 'Forest', 'Shrub', 'Barren']].eq(0.0).all(axis=1)))
-    df = df[mask]
-    return df
+    dataframe = dataframe[mask]
+    return dataframe
 
 # count categories for each row / observation polygon
 def _count_categories(row, raster, categories):
