@@ -6,9 +6,7 @@ from pyproj import Geod
 import pandas as pd
 from pathlib import Path
 
-from src.data_pipeline.common import get_window, get_file
-
-_GEOD = Geod(ellps="WGS84")
+from src.data_pipeline.common import get_window, get_file, GEOD, calculate_area
 
 def _drop_only_water(dataframe):
     mask = ~((dataframe[['Ocean', 'Water']].ne(0.0).any(axis=1)) & (dataframe[['Urban', 'Cropland', 'Pasture', 'Forest', 'Shrub', 'Barren']].eq(0.0).all(axis=1)))
@@ -45,22 +43,10 @@ def _count_categories(row, raster, categories):
     result['hilda_polygon'] = hilda_polygon
     
     # calculate area of land in km^2. will be used later to calculate population density
-    valid_mask = (data != categories["Water"]) & ~np.isnan(data) & (data != categories["Ocean"])
-    rows, cols = np.where(valid_mask)
-    total_area_km2 = 0.0
-    for r, col in zip(rows, cols):
-        # Get the coordinates of the cell corners
-        lon1, lat1 = transform * (col, r)  # Top-left corner
-        lon2, lat2 = transform * (col + 1, r)  # Top-right corner
-        lon3, lat3 = transform * (col + 1, r + 1)  # Bottom-right corner
-        lon4, lat4 = transform * (col, r + 1)  # Bottom-left corner
-        
-        # Calculate the area of the cell
-        
-        polygon = Polygon([(lon1, lat1), (lon2, lat2), (lon3, lat3), (lon4, lat4), (lon1, lat1)])
-        area, _ = _GEOD.geometry_area_perimeter(polygon) 
-        total_area_km2 += abs(area) / 1e6 # area is calculated in m^2. Transform to km^2
-    result["square_km"] = total_area_km2
+
+    area_total, _ = GEOD.geometry_area_perimeter(hilda_polygon)
+    result["area_total_km"] = area_total
+    result["area_land_km"]  = calculate_area(data, [categories["Water"], categories["Ocean"]], raster.transform)
     
     return pd.Series(result)
 
@@ -88,11 +74,12 @@ def extract_land_use_features(lulc_dir_path, mask_gdf):
     }
 
     valid_cat = categories_hilda.keys() - {"None"} # all categories, except "None" / "Nan"
-    feature_cols = (list(valid_cat) +  ["hilda_polygon","square_km"])
+    feature_cols = (list(valid_cat) +  ["hilda_polygon", "area_land_km", "area_total_km"])
 
     for category in valid_cat: 
         hilda_gdf[category] = np.nan 
-    hilda_gdf["square_km"] = np.nan 
+    hilda_gdf["area_land_km"] = np.nan 
+    hilda_gdf["area_total_km"] = np.nan 
     hilda_gdf["hilda_polygon"] = None
     
     for year in years:

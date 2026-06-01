@@ -10,7 +10,8 @@ from config import CONFIG
 
 #TODO here, duplictes are not checked in any way. Add a duplicate check /removal? 
 
-#build dataset from scratch
+#build dataset from scratch. Currently, its not saving separate dataframes for climate, LULC and population
+#TODO add savng separate dataframes for climate, LULC and population on demand
 def build_training_dataset(config):
     
     paths = config["paths"]
@@ -46,11 +47,11 @@ def build_training_dataset(config):
 
 # load training dataset. If the file (path defined in config) does nt exist, 
 # setting force_rebuind=True will build file from scratch
-def load_training_dataset(config, force_rebuind=False):
+def load_training_dataset(config, force_rebuild=False):
     paths = config["paths"]
     fanme = paths["training_dataset"]
     if not Path(fanme).exists():
-        if (force_rebuind):
+        if (force_rebuild):
             dir_name = fanme.parents[0]
             print(f"No training data file found in directory {dir_name}. New trainig file will be constructed...")
             training_dataset = build_training_dataset(config)
@@ -59,3 +60,4 @@ def load_training_dataset(config, force_rebuind=False):
     else:
         training_dataset =  pd.read_csv(fanme, low_memory=False)
     return training_dataset
+build_training_dataset(CONFIG)

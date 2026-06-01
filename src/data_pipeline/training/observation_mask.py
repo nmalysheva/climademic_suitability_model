@@ -1,11 +1,10 @@
 # data_pipeline/training/observation_mask.py
-from pyproj import Geod
 from shapely.geometry import box, MultiPolygon
 import pandas as pd
 import geopandas as gpd
 import numpy as np
 
-_GEOD = Geod(ellps="WGS84")
+from src.data_pipeline.common import GEOD
 
 #In the compendium, data is represented as polygons with different side lengths. 
 # Here, we define the side length based on the parameter values.
@@ -27,10 +26,10 @@ def _make_geodetic_box(x, y, offset_km):
     
     half_distance_m = offset_km / 2 * 1e3
 
-    north = _GEOD.fwd(x, y, 0, half_distance_m)
-    south = _GEOD.fwd(x, y, 180, half_distance_m)
-    east  = _GEOD.fwd(x, y, 90, half_distance_m)
-    west  = _GEOD.fwd(x, y, 270, half_distance_m)
+    north = GEOD.fwd(x, y, 0, half_distance_m)
+    south = GEOD.fwd(x, y, 180, half_distance_m)
+    east  = GEOD.fwd(x, y, 90, half_distance_m)
+    west  = GEOD.fwd(x, y, 270, half_distance_m)
 
     minx = west[0]
     maxx = east[0]
