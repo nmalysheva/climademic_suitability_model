@@ -69,8 +69,10 @@ def extract_land_use_features(lulc_dir_path, mask_gdf):
     hilda_gdf = mask_gdf.copy()
     hilda_dir = Path(lulc_dir_path)
 
+    #process only years from mask_gdf
     year_start = hilda_gdf["YEAR"].min()
     year_end = hilda_gdf["YEAR"].max()
+
     years = np.arange(year_start, year_end + 1)
 
     categories_hilda = {

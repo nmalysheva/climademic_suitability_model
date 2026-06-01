@@ -45,19 +45,22 @@ def extract_population_features(ghsl_dir_path, mask_gdf):
 
     ghsl_gdf = mask_gdf.copy()
 
+
     feature_cols = ["ghsl_pop_counts", "ghsl_polygon"]
 
+    #init columns
     ghsl_gdf["ghsl_pop_counts"] = np.nan
     ghsl_gdf["ghsl_polygon"] = None
 
     ghsl_dir = Path(ghsl_dir_path)
 
+    #process only years from mask_gdf
     year_start = ghsl_gdf["YEAR"].min()
-    #if year_start % 5 > 0:
-    ghsl_year_start = (year_start // 5) * 5
-
     year_end = ghsl_gdf["YEAR"].max()
-    #if year_end % 5 > 0:
+    
+    #ghsl is avaliable in 5-year step 1975, 1980, ...
+    #calculate right years avaliable for intepolation
+    ghsl_year_start = (year_start // 5) * 5
     ghsl_year_end = (year_end // 5) * 5 + 5
 
     print(ghsl_year_start, ghsl_year_end)
@@ -65,25 +68,25 @@ def extract_population_features(ghsl_dir_path, mask_gdf):
     #years = np.arange(year_start, year_end)
     ghsl_years = np.arange(ghsl_year_start, ghsl_year_end + 1, 5)
     for i in range(len(ghsl_years) - 1):
-        start_year = ghsl_years[i]
-        end_year   = ghsl_years[i + 1]
+        
+        start_year_block = ghsl_years[i]
+        end_year_block   = ghsl_years[i + 1]
 
-        ghsl_start_name = get_file(ghsl_dir, f"*_E{start_year}_*")
-        ghsl_end_name = get_file(ghsl_dir, f"*_E{end_year}_*")
+        ghsl_start_name = get_file(ghsl_dir, f"*_E{start_year_block}_*")
+        ghsl_end_name = get_file(ghsl_dir, f"*_E{end_year_block}_*")
         
         with rs.open(ghsl_start_name) as ghsl_start_raster, rs.open(ghsl_end_name) as ghsl_end_raster:
             for target_year in np.arange(year_start, year_end + 1):
                 print(target_year)
                 year_mask = (ghsl_gdf["YEAR"] == target_year)
                 if (year_mask.any()):
-                    #ghsl_gdf.loc[year_mask] = ghsl_gdf.loc[year_mask].apply(lambda row: _count_population(row, ghsl_start_raster, ghsl_end_raster, start_year, end_year, target_year), axis=1)
                     result = ghsl_gdf.loc[year_mask].apply(
                     lambda row: _count_population(
                                 row,
                                 ghsl_start_raster,
                                 ghsl_end_raster,
-                                start_year,
-                                end_year,
+                                start_year_block,
+                                end_year_block,
                                 target_year,),
                             axis=1,)
                 else:
