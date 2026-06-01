@@ -1,4 +1,4 @@
-# data_pipeline/training_ds/create_mask.py
+# data_pipeline/training/observation_mask.py
 from pyproj import Geod
 from shapely.geometry import box, MultiPolygon
 import pandas as pd
@@ -7,6 +7,8 @@ import numpy as np
 
 _GEOD = Geod(ellps="WGS84")
 
+#In the compendium, data is represented as polygons with different side lengths. 
+# Here, we define the side length based on the parameter values.
 def _get_polygon_offset_km(value):
 
     mapping = {
@@ -19,6 +21,8 @@ def _get_polygon_offset_km(value):
 
     return mapping.get(str(value), 110)
 
+#Converting kilometers to degrees and getting the coordinate window 
+# for a particular polygon centered at x, y.
 def _make_geodetic_box(x, y, offset_km):
     
     half_distance_m = offset_km / 2 * 1e3
@@ -35,6 +39,8 @@ def _make_geodetic_box(x, y, offset_km):
 
     geometry = box(minx, miny, maxx, maxy)
 
+    # Detect crossing of the 0-degree line and split polygons into two.
+    # # Otherwise, it would create a polygon spanning the entire latitude.
     if minx > maxx:
         geometry = MultiPolygon([
             box(minx, miny, 180, maxy),
@@ -43,6 +49,7 @@ def _make_geodetic_box(x, y, offset_km):
 
     return geometry
 
+#extract polygon geometry (in degrees) for a particular observation/row
 def _make_geodetic_mask(row):
     x = row.geometry.x
     y = row.geometry.y
@@ -51,23 +58,27 @@ def _make_geodetic_mask(row):
 
     return _make_geodetic_box(x, y, offset_km)
 
-def load_compendium_raw(compendium_fpath_csv):
+#load compendium dataset from .csv file. 
+def load_compendium_raw(compendium_fpath_csv, year_start, year_end):
     compendium_data = pd.read_csv(compendium_fpath_csv) 
     compendium_data = compendium_data.loc[~compendium_data["YEAR"].isna()] #filter out those without time information
     compendium_data = compendium_data.loc[compendium_data["YEAR"]!='2006-2008'] #filter out strange timing
     compendium_data["YEAR"] = compendium_data["YEAR"].astype(np.int64)
-    compendium_data = compendium_data.loc[compendium_data["YEAR"] > 1974] #we start from 1975
+    compendium_data = compendium_data.loc[compendium_data["YEAR"] > year_start - 1] #filter the years
+    compendium_data = compendium_data.loc[compendium_data["YEAR"] < year_end + 1]
     compendium_gdf = gpd.GeoDataFrame(compendium_data, geometry=gpd.points_from_xy(compendium_data.X, compendium_data.Y),
                                 crs='EPSG:4326') # EPSG:4326 is WGS84 Latitude/Longitude
     return compendium_gdf
 
+#extrat polygom mask for observations
 def create_geodetic_mask(compendium_gdf):
     gdf = compendium_gdf.copy()
     gdf["mask_geometry"] = gdf.apply(_make_geodetic_mask, axis=1)
     gdf = gdf.set_geometry("mask_geometry")
     return gdf
 
-def build_observation_mask(observation_path):
-    observation_gdf_raw = load_compendium_raw(observation_path)
+# Read the raw .csv file and create a polygon mask.
+def build_observation_mask(observation_path, year_start, year_end):
+    observation_gdf_raw = load_compendium_raw(observation_path, year_start, year_end)
     observation_gdf_mask = create_geodetic_mask(observation_gdf_raw)
     return observation_gdf_mask

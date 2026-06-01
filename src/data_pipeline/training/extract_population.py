@@ -1,3 +1,4 @@
+# data_pipeline/training/extract_population.py
 from pathlib import Path
 import numpy as np
 import rasterio as rs
@@ -51,7 +52,18 @@ def extract_population_features(ghsl_dir_path, mask_gdf):
 
     ghsl_dir = Path(ghsl_dir_path)
 
-    ghsl_years = np.arange(1975, 2016, 5)
+    year_start = ghsl_gdf["YEAR"].min()
+    #if year_start % 5 > 0:
+    ghsl_year_start = (year_start // 5) * 5
+
+    year_end = ghsl_gdf["YEAR"].max()
+    #if year_end % 5 > 0:
+    ghsl_year_end = (year_end // 5) * 5 + 5
+
+    print(ghsl_year_start, ghsl_year_end)
+
+    #years = np.arange(year_start, year_end)
+    ghsl_years = np.arange(ghsl_year_start, ghsl_year_end + 1, 5)
     for i in range(len(ghsl_years) - 1):
         start_year = ghsl_years[i]
         end_year   = ghsl_years[i + 1]
@@ -60,7 +72,8 @@ def extract_population_features(ghsl_dir_path, mask_gdf):
         ghsl_end_name = get_file(ghsl_dir, f"*_E{end_year}_*")
         
         with rs.open(ghsl_start_name) as ghsl_start_raster, rs.open(ghsl_end_name) as ghsl_end_raster:
-            for target_year in np.arange(start_year, end_year):
+            for target_year in np.arange(year_start, year_end + 1):
+                print(target_year)
                 year_mask = (ghsl_gdf["YEAR"] == target_year)
                 if (year_mask.any()):
                     #ghsl_gdf.loc[year_mask] = ghsl_gdf.loc[year_mask].apply(lambda row: _count_population(row, ghsl_start_raster, ghsl_end_raster, start_year, end_year, target_year), axis=1)
@@ -73,7 +86,9 @@ def extract_population_features(ghsl_dir_path, mask_gdf):
                                 end_year,
                                 target_year,),
                             axis=1,)
-
+                else:
+                    print("no data ", target_year)
+                print(result)
                 ghsl_gdf.loc[year_mask, feature_cols] = result[feature_cols]
 
     return ghsl_gdf
