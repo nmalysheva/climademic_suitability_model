@@ -86,10 +86,12 @@ def predict_gmod_probabilities(model, scaler, features):
     return np.array(predicted_values)
 
 def update_training_datasets(X_train, y_train, features,
-                          predicted_probabilities, scaler, threshold: float = 0.5):
+                                                       predicted_probabilities, scaler, threshold: float = 0.5):
 
+    #define misclassified predictions for given trseshold
     missclassified_indices = np.where(predicted_probabilities[:, 0] < threshold)[0]
 
+    #add misclassified points to th etraining dataset
     if len(missclassified_indices) > 0:
         missclassified_features = features.loc[missclassified_indices]
         missclassified_features_scaled = scaler.transform(missclassified_features).tolist()
@@ -102,35 +104,45 @@ def update_training_datasets(X_train, y_train, features,
 def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_end):
     paths = config["paths"]
     vector = f"Aedes {specie}"
+
+    #path for saving trained models
     models_dir = Path(paths["model_parameters"]["models_directory"])
     
     training_df =load_training_data(paths["processed_data"]["training_dataset"], vector)
     training_df_quantiles = calculate_quantiles(training_df)
     
     X_train, y_train, scaler  = prepare_training_dataset(training_df_quantiles)
-    save_scaler(scaler, Path(models_dir, specie, "scaler"))
+    save_scaler(scaler, Path(models_dir, specie, "scaler")) #save for future inference
     
     model = ClimademicMonthlyModel(params="-s 2 -t 2 -g 0.03 -n 0.03 -b 1")
     model.train(X_train, y_train)
     
+    #save base model (2975-2014)
     model_name = f"{specie}/base_ocsvm_{specie}_quantile_75.model'"
     model_path = Path(models_dir, model_name)
     model_path.parent.mkdir(parents=True, exist_ok=True)
     model.save(model_path)
     
+    #iterate over years of incremental learning
     years = np.arange(gmod_year_start, gmod_year_end + 1)
     gmod_filename = get_gmod_file(paths["processed_data"]["gmod_dataset"], gmod_year_start, gmod_year_end)
     features = prepare_gmod_dataset(gmod_filename, vector)
 
     for year in years:
-
+        #get gmod data for that year
         features_year = features.loc[features["year"] == year].copy()# prepare_gmod_dataset(gmod_filename)
         features_year = features_year.drop(columns=["year"])
+
+        #predict probabilities for given gmod set
         gmod_prob = predict_gmod_probabilities(model, scaler, features_year)
 
+        #add misclassified points to the training dataset
         X_train, y_train = update_training_datasets(X_train, y_train, features_year,
                             gmod_prob, scaler)
+        #retrain model
         model.train(X_train, y_train)
+
+        #save  newly trained model
         model_name = f"{specie}/{year}_ocsvm_{specie}_quantile_75.model'"
         model_path = Path(models_dir, model_name)
         model_path.parent.mkdir(parents=True, exist_ok=True)
