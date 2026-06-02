@@ -119,7 +119,7 @@ def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_en
     model.save(model_path)
     
     years = np.arange(gmod_year_start, gmod_year_end + 1)
-    gmod_filename = get_gmod_file(paths["processed_data"]["gmod_dataset"], 2015, 2015)
+    gmod_filename = get_gmod_file(paths["processed_data"]["gmod_dataset"], gmod_year_start, gmod_year_end)
     features = prepare_gmod_dataset(gmod_filename, vector)
 
     for year in years:
