@@ -1,7 +1,9 @@
 # src/data_pipeline/common.py
 from pathlib import Path
 import numpy as np
-from shapely import Polygon
+from shapely import Polygon, wkt
+import pandas as pd
+from shapely.geometry.base import BaseGeometry
 
 import rasterio as rs
 from pyproj import Geod
@@ -73,3 +75,10 @@ def calculate_area(data, excluded_values, transform):
 def implace_nan(data, default_nan):
     data = np.where(data == default_nan, np.nan, data) #replace default_nan with nan values
     return data
+
+def ensure_geometry(value):
+    if isinstance(value, BaseGeometry):
+        return value
+    if pd.isna(value):
+        return None
+    return wkt.loads(value)

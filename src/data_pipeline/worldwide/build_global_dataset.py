@@ -8,6 +8,7 @@ from shapely import wkt
 from src.data_pipeline.worldwide.extract_climate import extract_climate_features
 from src.data_pipeline.worldwide.extract_land_use import extract_land_use_features
 from src.data_pipeline.worldwide.extract_population import extract_population_features
+from src.data_pipeline.common import ensure_geometry
 
 from config import CONFIG
 
@@ -42,9 +43,16 @@ def build_global_dataset(config, year, resolution = 0.25):
     df_land_use = process_land_use(config, year)
     df_population = process_population(config, year)
 
+    '''fname_climate = Path(paths["processed_data"]["climate_worldwide"], f"{year}_climate_worldwide_res_{resolution}_deg.csv")
+    df_climate = pd.read_csv(fname_climate)
+    fname_land_use = Path(paths["processed_data"]["land_use_worldwide"], f"{year}_land_use_worldwide_res_{resolution}_deg.csv")
+    df_land_use = pd.read_csv(fname_land_use)
+    fname_population = Path(paths["processed_data"]["population_worldwide"], f"{year}_population_worldwide_res_{resolution}_deg.csv")
+    df_population = pd.read_csv(fname_population)'''
+
     global_df = assemble_global_dataset(df_climate, df_land_use, df_population)
 
-    fname_global = Path(paths["processed_data"], f"{year}_global_clima_lulc_pop_res_{resolution}_deg.csv")
+    fname_global = Path(paths["processed_data"]["global_dataset"], f"{year}_global_clima_lulc_pop_res_{resolution}_deg.csv")
     global_df.to_csv(fname_global, sep=',', index=False, decimal='.')
 
     return global_df
@@ -52,13 +60,10 @@ def build_global_dataset(config, year, resolution = 0.25):
 # Assembles a full dataset from climet, land use and population data
 #TODO control columns at the final dataset
 def assemble_global_dataset(df_climate, df_land_use, df_population):
-    #df_land_use['geometry'] = df_land_use['geometry'].apply(wkt.loads)
+    df_land_use['geometry'] = df_land_use['geometry'].apply(ensure_geometry)
     gdf_land_use = gpd.GeoDataFrame(df_land_use, geometry='geometry')
     gdf_land_use.crs = 'epsg:4326'
-     
-     #comment when re-run
-    df_population = df_population.rename(columns={"longitude": "long", "latitude": "lat"})
-
+    
     bounds = gdf_land_use.geometry.bounds
     gdf_land_use["corner_x"] = bounds.maxx.round(6)
     gdf_land_use["corner_y"] = bounds.maxy.round(6)
@@ -67,16 +72,21 @@ def assemble_global_dataset(df_climate, df_land_use, df_population):
     df_climate["corner_y"] = df_climate["latitude"].round(6)
 
     global_df = gdf_land_use.merge(
-        df_climate.drop(columns=["geometry", "longitude", "latitude"]),
+        df_climate.drop(columns=["longitude", "latitude"]),
         on=["corner_x", "corner_y", "year"],
         how="inner",
-        ).merge(df_population,
-        on=["long", "lat", "year"],
-        how="left",)
+        )
+    
+    df_population = df_population.drop(columns=["ghsl_polygon"])
+    global_df = global_df.merge(df_population,
+        on=["longitude", "latitude", "year"],
+       how="left",)
 
     mask = ~((global_df[['Ocean', 'Water']].ne(0.0).any(axis=1)) & (global_df[['Urban', 'Cropland', 'Pasture', 'Forest', 'Shrub', 'Barren']].eq(0.0).all(axis=1)))
     global_df = global_df[mask]
     global_df= global_df.dropna()
+
+    global_df = global_df.drop(columns = ["corner_x", "corner_y"])
         
     global_df["pop_density"] = global_df["ghsl_pop_counts"] / global_df["area_land_km"]
 
@@ -97,8 +107,6 @@ def load_global_dataset(config, year, froce_rebuild=False, resolution = 0.25):
     else:
         global_dataset =  pd.read_csv(fname_global, low_memory=False)
     return global_dataset
-
-build_global_dataset(CONFIG, 2015)
 
 
         
