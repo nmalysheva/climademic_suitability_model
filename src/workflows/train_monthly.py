@@ -122,13 +122,16 @@ def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_en
     model_path = Path(models_dir, model_name)
     model_path.parent.mkdir(parents=True, exist_ok=True)
     model.save(model_path)
+    print(f"Base model is trained and saved as {model_path}")
     
     #iterate over years of incremental learning
     years = np.arange(gmod_year_start, gmod_year_end + 1)
     gmod_filename = get_gmod_file(paths["processed_data"]["gmod_dataset"], gmod_year_start, gmod_year_end)
     features = prepare_gmod_dataset(gmod_filename, vector)
 
+    print(f"Start incremental learning for years {gmod_year_start} - {gmod_year_end}")
     for year in years:
+
         #get gmod data for that year
         features_year = features.loc[features["year"] == year].copy()# prepare_gmod_dataset(gmod_filename)
         features_year = features_year.drop(columns=["year"])
@@ -147,3 +150,5 @@ def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_en
         model_path = Path(models_dir, model_name)
         model_path.parent.mkdir(parents=True, exist_ok=True)
         model.save(model_path)
+
+        print(f"Model for year {year} is trained and saved as {model_path}")

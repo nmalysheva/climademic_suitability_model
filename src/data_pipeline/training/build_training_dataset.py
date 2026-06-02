@@ -49,7 +49,7 @@ def build_training_dataset(config):
 # setting force_rebuind=True will build file from scratch
 def load_training_dataset(config, force_rebuild=False):
     paths = config["paths"]
-    fanme = paths["training_dataset"]
+    fanme = paths["processed_data"]["training_dataset"]
     if not Path(fanme).exists():
         if (force_rebuild):
             dir_name = fanme.parents[0]
