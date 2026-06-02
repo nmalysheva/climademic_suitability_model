@@ -37,7 +37,7 @@ def extract_climate_features(climate_fpath, mask_gdf):
     clima_gdf = mask_gdf.copy()
     year_start = clima_gdf["YEAR"].min()
     year_end = clima_gdf["YEAR"].max()
-    clima_variables = ["t2m", "tp", "d2m", "si10"] #variables
+    clima_variables = ["t2m", "tp", "d2m", "si10"] #variables #TODO allow selection of variables.
     with xr.open_dataset(climate_fpath) as clima_ds:
        # Only consider years contained in the mask dataset.
         clima_ds = clima_ds.sel(time=slice(f"{year_start}-01-01", f"{year_end}-12-31"), expver=1)
@@ -45,7 +45,6 @@ def extract_climate_features(climate_fpath, mask_gdf):
         for var_name in clima_variables:
             print(var_name)
 
-            #print(da5.count().item())
             extracted = clima_gdf.apply(lambda row: _extract_12_months(row.X, row.Y, row.YEAR, var_name, clima_ds),axis=1)
             monthly_df = pd.DataFrame(extracted.tolist(),columns=[f"{var_name}_{m:02d}" for m in range(1, 13)],
                                     index=clima_gdf.index)

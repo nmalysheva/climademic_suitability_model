@@ -39,7 +39,7 @@ def build_training_dataset(config):
                         .merge(population_df[cols_to_add_pop], on=merge_on_cols, how="left"))
     
     #calculate population density 
-    training_dataset["pop_density"] = training_dataset["ghsl_pop_counts"] / training_dataset["area_km"]
+    training_dataset["pop_density"] = training_dataset["ghsl_pop_counts"] / training_dataset["area_land_km"]
 
     training_dataset.to_csv(paths["processed_data"]["training_dataset"], sep=',', index=False, decimal='.')
 
