@@ -60,4 +60,3 @@ def load_training_dataset(config, force_rebuild=False):
     else:
         training_dataset =  pd.read_csv(fanme, low_memory=False)
     return training_dataset
-build_training_dataset(CONFIG)
