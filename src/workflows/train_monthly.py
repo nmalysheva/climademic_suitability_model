@@ -101,6 +101,7 @@ def update_training_datasets(X_train, y_train, features,
 
     return X_train, y_train
 
+#TODO check years to be correct
 def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_end):
     paths = config["paths"]
     vector = f"Aedes {specie}"
