@@ -86,7 +86,7 @@ def assemble_global_dataset(df_climate, df_land_use, df_population):
 #TODO some file names are hard-coded. move them to config file
 def load_global_dataset(config, year, froce_rebuild=False, resolution = 0.25):
     paths = config["paths"]
-    fname_global = Path(paths["processed_data"], f"{year}_global_clima_lulc_pop_res_{resolution}_deg.csv")
+    fname_global = Path(paths["processed_data"]["global_dataset"], f"{year}_global_clima_lulc_pop_res_{resolution}_deg.csv")
     if not Path(fname_global).exists():
         if (froce_rebuild):
             dir_name = fname_global.parents[0]
