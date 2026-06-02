@@ -11,13 +11,15 @@ CONFIG = {
             "land_use": PROJECT_ROOT / "artifacts/data_raw/HILDA+",
             "population": PROJECT_ROOT / "artifacts/data_raw/GHSL_POP",
             "gmod_inaturalist": PROJECT_ROOT / "artifacts/data_raw/GMOD/inaturalistpoints.csv",
-            "gmod_mosquito_alert": PROJECT_ROOT / "artifacts/data_raw/GMOD/mosquitoAlert.csv"
-            },
+            "gmod_mosquito_alert": PROJECT_ROOT / "artifacts/data_raw/GMOD/mosquitoAlert.csv"},
         "processed_data":{
             "training_dataset": PROJECT_ROOT / "artifacts/processed_data/training_dataset/training_dataset.csv",
             "climate_worldwide": PROJECT_ROOT / "artifacts/processed_data/global_dataset/climate/",
             "population_worldwide":PROJECT_ROOT / "artifacts/processed_data/global_dataset/population/",
             "land_use_worldwide": PROJECT_ROOT / "artifacts/processed_data/global_dataset/land_use/",
-            "gmod_dataset":PROJECT_ROOT / "artifacts/processed_data/GMOD_dataset/"}
+            "gmod_dataset":PROJECT_ROOT / "artifacts/processed_data/GMOD_dataset/"},
+        "model_parameters":{
+            "models_directory": PROJECT_ROOT / "artifacts/models/"
+        }
     }
 }

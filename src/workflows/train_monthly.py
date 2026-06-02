@@ -5,11 +5,12 @@ import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from src.models.monthly_model.monthly_climademic_model import ClimademicMonthlyModel
+from config import CONFIG
 
 _columns_list=['t2m_q_0.75', 'd2m_q_0.75', 'tp_q_0.75', 'si10_q_0.75',
-               'Population_Density', 'land_use_0', 'land_use_11',
-               'land_use_22', 'land_use_33', 'land_use_44', 'land_use_55',
-               'land_use_66', 'land_use_77']
+               'pop_density', 'Ocean', 'Urban',
+               'Cropland', 'Pasture', 'Forest', 'Shrub',
+               'Barren', 'Water']
 
 #TODO for all functions define type check
 def calculate_quantiles(dataframe, parameters=['t2m', 'd2m', 'tp', 'si10'], quantile_value=0.75):
@@ -17,7 +18,7 @@ def calculate_quantiles(dataframe, parameters=['t2m', 'd2m', 'tp', 'si10'], quan
 
     for param in parameters:
         quntile_col_name = param + "_q_" + str(quantile_value)
-        col_range = [f"{param}_{i}" for i in range(1, 13)]
+        col_range = [f"{param}_{i:02d}" for i in range(1, 13)]
         quantile_df[quntile_col_name] = quantile_df[col_range].quantile(quantile_value,axis=1)
     return quantile_df
 
@@ -37,7 +38,6 @@ def prepare_training_dataset(dataframe):
     
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
-    save_scaler(scaler, Path(models_dir, specie, "scaler"))
 
     return X_train_scaled.tolist(), y_train.tolist(), scaler
 
@@ -47,18 +47,20 @@ def save_scaler(scaler, path):
     joblib.dump(scaler, scaler_path)
 
 
-def get_gmod_file(gmod_dir, year) :
-    gmod_file= next(Path(gmod_dir).glob(f"{year}_*"), None)
+def get_gmod_file(gmod_dir, year_start, year_end) :
+
+    gmod_file= next(Path(gmod_dir).glob(f"*_{year_start}-{year_end}*"), None)
 
     if gmod_file is None:
         raise FileNotFoundError(
-            f"No GMOD file found for year {year} in directory: {gmod_dir}"
+            f"No GMOD file found for years {year_start}-{year_end} in directory: {gmod_dir}"
         )
 
     return gmod_file
 
-def prepare_gmod_dataset(gmod_file):
+def prepare_gmod_dataset(gmod_file, specie):
     gmod_df = pd.read_csv(gmod_file)
+    gmod_df = gmod_df.loc[gmod_df["Specie"] == specie]
     gmod_df = gmod_df.rename(
         columns={
             "t2m": "t2m_q_0.75",
@@ -67,14 +69,9 @@ def prepare_gmod_dataset(gmod_file):
             "si10": "si10_q_0.75",
         }
     )
-
-    gmod_df = gmod_df.drop(columns=["Unnamed: 0"], errors="ignore")
     gmod_df = gmod_df.dropna()
-
-    #metadata = gmod_df[["latitude", "longitude", "geometry"]].copy()
-    features = gmod_df[ _columns_list]
-
-    #return metadata, features
+    
+    features = gmod_df[ _columns_list + ["year"]]
     return  features
 
 
@@ -102,56 +99,39 @@ def update_training_datasets(X_train, y_train, features,
 
     return X_train, y_train
 
-
-
-
-
-fname = "/Users/MalyshevaN-Dev/Documents/aedes_model/Climademic_Suit_Model/artifacts/ts/mosquito_climate_pop_land_use_n.csv"
-genus = "Aedes"
-specie = "aegypti"
-vector = f"{genus} {specie}"
-
-models_dir = "/Users/MalyshevaN-Dev/Documents/aedes_model/Climademic_Suit_Model/artifacts/models/"
-gmod_dir = Path("/Users/MalyshevaN-Dev/Documents/aedes_model/Climademic_Suit_Model/artifacts/processed_data/GMOD_dataset/")
-
-df =load_training_data(fname, vector)
-
-df = calculate_quantiles(df)
-
-X_train, y_train, scaler  = prepare_training_dataset(df)
-
-model = ClimademicMonthlyModel(params="-s 2 -t 2 -g 0.03 -n 0.03 -b 1")
-model.train(X_train, y_train)
-
-model_name = f"{specie}/base_ocsvm_{specie}_quantile_75.model'"
-model_path = Path(models_dir, model_name)
-model_path.parent.mkdir(parents=True, exist_ok=True)
-model.save(model_path)
-
-years = np.arange(2015, 2016)
-
-for year in years:
-
-    gmod_filename = get_gmod_file(Path(gmod_dir), year)
-
-    features = prepare_gmod_dataset(gmod_filename)
-
-    gmod_prob = predict_gmod_probabilities(model, scaler, features)
-
-    X_train, y_train = update_training_datasets(X_train, y_train, features,
-                          gmod_prob, scaler)
+def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_end):
+    paths = config["paths"]
+    vector = f"Aedes {specie}"
+    models_dir = Path(paths["model_parameters"]["models_directory"])
     
+    training_df =load_training_data(paths["processed_data"]["training_dataset"], vector)
+    training_df_quantiles = calculate_quantiles(training_df)
+    
+    X_train, y_train, scaler  = prepare_training_dataset(training_df_quantiles)
+    save_scaler(scaler, Path(models_dir, specie, "scaler"))
+    
+    model = ClimademicMonthlyModel(params="-s 2 -t 2 -g 0.03 -n 0.03 -b 1")
     model.train(X_train, y_train)
-    model_name = f"{specie}/{year}_ocsvm_{specie}_quantile_75.model'"
+    
+    model_name = f"{specie}/base_ocsvm_{specie}_quantile_75.model'"
     model_path = Path(models_dir, model_name)
     model_path.parent.mkdir(parents=True, exist_ok=True)
     model.save(model_path)
+    
+    years = np.arange(gmod_year_start, gmod_year_end + 1)
+    gmod_filename = get_gmod_file(paths["processed_data"]["gmod_dataset"], 2015, 2015)
+    features = prepare_gmod_dataset(gmod_filename, vector)
 
+    for year in years:
 
+        features_year = features.loc[features["year"] == year].copy()# prepare_gmod_dataset(gmod_filename)
+        features_year = features_year.drop(columns=["year"])
+        gmod_prob = predict_gmod_probabilities(model, scaler, features_year)
 
-
-
-
-
-
-#print(df.head(5))
+        X_train, y_train = update_training_datasets(X_train, y_train, features_year,
+                            gmod_prob, scaler)
+        model.train(X_train, y_train)
+        model_name = f"{specie}/{year}_ocsvm_{specie}_quantile_75.model'"
+        model_path = Path(models_dir, model_name)
+        model_path.parent.mkdir(parents=True, exist_ok=True)
+        model.save(model_path)
