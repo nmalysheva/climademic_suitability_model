@@ -17,6 +17,7 @@ CONFIG = {
             "training_dataset": PROJECT_ROOT / "artifacts/processed_data/training_dataset/training_dataset.csv",
             "climate_worldwide": PROJECT_ROOT / "artifacts/processed_data/global_dataset/climate/",
             "population_worldwide":PROJECT_ROOT / "artifacts/processed_data/global_dataset/population/",
-            "land_use_worldwide": PROJECT_ROOT / "artifacts/processed_data/global_dataset/land_use/",}
+            "land_use_worldwide": PROJECT_ROOT / "artifacts/processed_data/global_dataset/land_use/",
+            "gmod_dataset":PROJECT_ROOT / "artifacts/processed_data/GMOD_dataset/"}
     }
 }

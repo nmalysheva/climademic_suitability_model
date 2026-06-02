@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 import rasterio as rs
-from shapely import box, Polygon
+from shapely import box
 
 from src.data_pipeline.common import get_file, get_grid, GEOD, calculate_area, implace_nan
 

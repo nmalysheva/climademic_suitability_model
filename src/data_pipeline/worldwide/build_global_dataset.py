@@ -52,7 +52,7 @@ def build_global_dataset(config, year, resolution = 0.25):
 # Assembles a full dataset from climet, land use and population data
 #TODO control columns at the final dataset
 def assemble_global_dataset(df_climate, df_land_use, df_population):
-    df_land_use['geometry'] = df_land_use['geometry'].apply(wkt.loads)
+    #df_land_use['geometry'] = df_land_use['geometry'].apply(wkt.loads)
     gdf_land_use = gpd.GeoDataFrame(df_land_use, geometry='geometry')
     gdf_land_use.crs = 'epsg:4326'
      

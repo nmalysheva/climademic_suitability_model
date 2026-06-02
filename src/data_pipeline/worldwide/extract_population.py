@@ -33,6 +33,9 @@ def process_window(index, lon, lat, year, start_year, end_year, pop_raster_start
     }
 
     minx, miny, maxx, maxy = calculate_window_bounds(lon, lat, grid_resolution)
+    ghsl_polygon = box(minx, miny, maxx, maxy)
+    result["ghsl_polygon"] = ghsl_polygon
+    
     if interpolate_flag:
         window_start = rs.windows.from_bounds(minx, miny, maxx, maxy, pop_raster_start.transform)
         window_end   = rs.windows.from_bounds(minx, miny, maxx, maxy, pop_raster_end.transform)
@@ -51,8 +54,6 @@ def process_window(index, lon, lat, year, start_year, end_year, pop_raster_start
 
     if ~np.all(np.isnan(ghsl_data_year)):
         result["ghsl_pop_counts"] = np.nansum(ghsl_data_year)
-        ghsl_polygon = box(minx, miny, maxx, maxy)
-        result["ghsl_polygon"] = ghsl_polygon
     return result
 
 
