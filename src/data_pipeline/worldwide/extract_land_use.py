@@ -15,7 +15,7 @@ def calculate_window_bounds(lon, lat, grid_step):
     return left, bottom, right, top
 
 def process_window(index, lon, lat, year, hilada_raster, categories, grid_resolution):
-    print(index/1036800)
+    print(index/1036800 * 100, "%") #prints % of processed info
     result = {
             "longitude": lon,
             "latitude": lat,
@@ -40,12 +40,13 @@ def process_window(index, lon, lat, year, hilada_raster, categories, grid_resolu
         result["geometry"] = lulc_polygon
 
         area_total, _ = GEOD.geometry_area_perimeter(lulc_polygon)
-        result["area_total_km"] = area_total
-        result["area_land_km"]  = calculate_area(lulc_data, [categories["Water"], categories["Ocean"]], hilada_raster.transform)
+        result["area_total_km"] = area_total / 1e6
+        area_land_km = calculate_area(lulc_data, [categories["Water"], categories["Ocean"]], hilada_raster.transform)
+
+        result["area_land_km"]  = area_land_km#calculate_area(lulc_data, [categories["Water"], categories["Ocean"]], hilada_raster.transform)
         
         for category in valid_cat:
                 result[category] = np.sum(lulc_data == categories[category]) / total_pixels
-
     return result
 
 

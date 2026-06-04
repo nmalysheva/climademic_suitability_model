@@ -24,7 +24,7 @@ def process_land_use(config, year, resolution = 0.25):
     paths = config["paths"]
     df_land_use = extract_land_use_features(paths["raw_data"]["land_use"], year, resolution=resolution)
     fname_land_use = Path(paths["processed_data"]["land_use_worldwide"], f"{year}_land_use_worldwide_res_{resolution}_deg.csv")
-    df_land_use.to_csv(fname_land_use, sep=',', index=False, decimal='.', float_format='%.3f')
+    df_land_use.to_csv(fname_land_use, sep=',', index=False, decimal='.')#, float_format='%.3f')
     print(f"processed land use data for the {year} is saved as {fname_land_use}")
     return df_land_use
 
@@ -32,11 +32,12 @@ def process_population(config, year, resolution = 0.25):
     paths = config["paths"]
     df_population = extract_population_features(paths["raw_data"]["population"], year, resolution=resolution)
     fname_population = Path(paths["processed_data"]["population_worldwide"], f"{year}_population_worldwide_res_{resolution}_deg.csv")
-    df_population.to_csv(fname_population, sep=',', index=False, decimal='.', float_format='%.3f')
+    df_population.to_csv(fname_population, sep=',', index=False, decimal='.')#), float_format='%.3f')
     print(f"processed population data for the {year} is saved as {fname_population}")
     return df_population
 
-#def build_global_dataset(config, year, froce_rebuild=False, froce_reassemble=False, resolution = 0.25):
+#TODO add possibility to assemble datasets from saved land_use.csv, climate.csv and population.csv files
+#TODO add possibility to define the grid limits. (now  its full (-180; 180) for longitude and (-90; 90)for latitude)
 def build_global_dataset(config, year, resolution = 0.25):
     paths = config["paths"]
     df_climate = process_climate(config, year)
@@ -107,9 +108,6 @@ def load_global_dataset(config, year, froce_rebuild=False, resolution = 0.25):
     else:
         global_dataset =  pd.read_csv(fname_global, low_memory=False)
     return global_dataset
-
-
-        
 
 
 

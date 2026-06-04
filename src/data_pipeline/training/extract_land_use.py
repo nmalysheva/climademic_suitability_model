@@ -45,7 +45,7 @@ def _count_categories(row, raster, categories):
     # calculate area of land in km^2. will be used later to calculate population density
 
     area_total, _ = GEOD.geometry_area_perimeter(hilda_polygon)
-    result["area_total_km"] = area_total
+    result["area_total_km"] = area_total / 1e6
     result["area_land_km"]  = calculate_area(data, [categories["Water"], categories["Ocean"]], raster.transform)
     
     return pd.Series(result)

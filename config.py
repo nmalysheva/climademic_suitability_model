@@ -20,7 +20,7 @@ CONFIG = {
             "land_use_worldwide": PROJECT_ROOT / "artifacts/processed_data/global_dataset/land_use/",
             "gmod_dataset":PROJECT_ROOT / "artifacts/processed_data/GMOD_dataset/"},
         "model_parameters":{
-            "models_directory": PROJECT_ROOT / "artifacts/models/"
-        }
+            "models_directory": PROJECT_ROOT / "artifacts/models/"},
+        "predictions": PROJECT_ROOT / "artifacts/predictions/"
     }
 }
