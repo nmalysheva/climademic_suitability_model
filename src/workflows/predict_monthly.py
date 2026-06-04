@@ -58,8 +58,4 @@ def predict_monthly(config, year_analysis, specie, model_year):
 
 
 
-predict_monthly(CONFIG, 2015, "aegypti", 2015)
-
-
-
 
