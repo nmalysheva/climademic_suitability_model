@@ -41,7 +41,7 @@ either accuracy (ACC) or mean-squared error (MSE) is returned.
     -q : quiet mode (no outputs) """
 
 class ClimademicMonthlyModel:
-    def __init__(self, params="-s 2 -t 2 -g 0.03 -n 0.03 -b 1"):
+    def __init__(self, params="-s 2 -t 2 -g 0.03 -n 0.03 -b 1 -q"):
         self.params = params
         self.model = None
 
@@ -55,7 +55,7 @@ class ClimademicMonthlyModel:
         if self.model is None:
             raise ValueError("Model is not trained or loaded.")
 
-        options = "-b 1" if probability else "-b 0"
+        options = "-b 1 -q" if probability else "-b 0 -q"
         labels, accuracy, values = svm_predict([], X, self.model, options)
 
         return labels, accuracy, values
