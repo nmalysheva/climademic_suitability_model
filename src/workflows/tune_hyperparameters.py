@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.svm import OneClassSVM
 from src.models.monthly_model.monthly_climademic_model import ClimademicMonthlyModel
 from sklearn.model_selection import GridSearchCV
-
+#TODO save optimal hyperparameters somewhere
 #calculate median square pairwise distance between features. Used in defining gamma parameter
 def calculate_median(X):
     distance_d2 = pairwise_distances(X, metric="sqeuclidean")
