@@ -44,8 +44,6 @@ def extract_mosquito_alert(year_start, year_end, fpath_mosquito_alert, species):
 
 def extract_inaturalist(year_start, year_end, fpath_inaturalist, species):
 
-    species = ["Aedes aegypti", "Aedes albopictus"]
-
     read_cols = [
         "ObsTaxonName",
         "observationResCatObsPheTime",
@@ -75,7 +73,7 @@ def extract_inaturalist(year_start, year_end, fpath_inaturalist, species):
         .drop(columns=[time_col])
         .rename(columns={"ObsTaxonName": "Specie"})
     )
-
+    
     years_mask = (inaturalist_df["year"] >= year_start) & (inaturalist_df["year"] <= year_end)
     inaturalist_df = inaturalist_df[years_mask]
     return inaturalist_df

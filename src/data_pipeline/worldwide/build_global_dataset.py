@@ -108,6 +108,3 @@ def load_global_dataset(config, year, froce_rebuild=False, resolution = 0.25):
     else:
         global_dataset =  pd.read_csv(fname_global, low_memory=False)
     return global_dataset
-
-
-

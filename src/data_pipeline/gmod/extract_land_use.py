@@ -1,4 +1,4 @@
-# src/data_pipeline/gmod/eextract_climate.py
+# src/data_pipeline/gmod/extract_land_use.py
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -13,6 +13,7 @@ def extract_land_use_features(directory_global, gmod_df):
     #iterate over all years from gmod_gdf
     year_start = gmod_gdf["year"].min()
     year_end =  gmod_gdf["year"].max()
+
     all_years = []
     for year in np.arange(year_start, year_end + 1):
         #print(year)
@@ -21,7 +22,10 @@ def extract_land_use_features(directory_global, gmod_df):
         land_use_file = get_file (directory_global, f"{year}_land_use_*")
         #read it as geodataframe
         land_use_df = pd.read_csv(land_use_file)
-        land_use_df['geometry'] = land_use_df['geometry'].apply(wkt.loads)
+        land_use_df = land_use_df.dropna(subset=["geometry"]).copy()
+        #TODO decide how to work around that: drop nA here, or allow load geomtery as "Nan"
+        land_use_df['geometry'] = land_use_df['geometry'].apply(
+            lambda x: wkt.loads(x) if pd.notna(x) else None)
         gdf_land_use = gpd.GeoDataFrame(land_use_df, geometry='geometry')
         gdf_land_use.crs = 'epsg:4326'
 

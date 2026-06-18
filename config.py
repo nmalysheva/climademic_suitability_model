@@ -7,7 +7,7 @@ CONFIG = {
         "artifacts": PROJECT_ROOT / "artifacts",
         "raw_data": {
             "compendium": PROJECT_ROOT / "artifacts/data_raw/Compendium/aegypti_albopictus.csv", #Kraemer's global compendium dataset
-            "climate": PROJECT_ROOT / "artifacts/data_raw/ERA5/era5_monthly_mean_1958-2023.nc", #Path to thr ERA5 files
+            "climate": PROJECT_ROOT / "artifacts/data_raw/ERA5/era5_new/era_5_combined.nc", #Path to thr ERA5 files
             "land_use": PROJECT_ROOT / "artifacts/data_raw/HILDA+",
             "population": PROJECT_ROOT / "artifacts/data_raw/GHSL_POP",
             "gmod_inaturalist": PROJECT_ROOT / "artifacts/data_raw/GMOD/inaturalistpoints.csv",

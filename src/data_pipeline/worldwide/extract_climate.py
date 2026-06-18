@@ -53,12 +53,12 @@ def extract_climate_features_to_df(clima_ds, features):
 
     return result
 
-# TODO: Add esupport for different resolutions 
+# TODO: Add support for different resolutions 
 def extract_climate_features(climate_fpath, year, features = ['t2m', 'd2m', 'si10', 'tp'], resolution=0.25):
     with xr.open_dataset(climate_fpath) as clima_ds: #open era5 file
         if (_check_resolution(clima_ds, resolution)):# chek if era5 resolution corrresponds to desired resolution
 
-            clima_ds = clima_ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"), expver=1)
+            clima_ds = clima_ds.sel(time=slice(f"{year}-01-01", f"{year}-12-31"))#, expver=1)
 
             clima_features_df = extract_climate_features_to_df(clima_ds, features)
             clima_features_df["year"] = year

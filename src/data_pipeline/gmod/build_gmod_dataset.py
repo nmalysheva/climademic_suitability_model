@@ -39,6 +39,7 @@ def build_gmod_dataset(year_start, year_end, config):
     land_use_gdf = process_land_use(config, gmod_df)
     population_gdf = process_population(config, gmod_df)
 
+
     merge_on_cols = ["observation_id", "year"]
     new_cols_land_use = merge_on_cols + [
         c for c in land_use_gdf.columns
@@ -58,9 +59,12 @@ def build_gmod_dataset(year_start, year_end, config):
         .merge(population_gdf[new_cols_pop], on=merge_on_cols, how="left")
     )
 
+    mask = ~((final_df[['Ocean', 'Water']].ne(0.0).any(axis=1)) & (final_df[['Urban', 'Cropland', 'Pasture', 'Forest', 'Shrub', 'Barren']].eq(0.0).all(axis=1)))
+    final_df = final_df[mask]
+    final_df = final_df.dropna()
+
     final_df["pop_density"] = final_df["ghsl_pop_counts"] / final_df["area_land_km"]
 
     paths = config["paths"]
     fname_gmod_dataset = Path(paths["processed_data"]["gmod_dataset"]) / f"GMOD_climate_land_use_pop_{year_start}-{year_end}.csv"
     final_df.to_csv(fname_gmod_dataset, sep=',', index=False, decimal='.')
-
