@@ -5,7 +5,6 @@ import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from src.models.monthly_model.monthly_climademic_model import ClimademicMonthlyModel
-from config import CONFIG
 
 _climate_params = ['t2m', 'd2m', 'tp', 'si10']
 _lan_use_pop_cols = ['pop_density', 'Ocean', 'Urban',
@@ -17,14 +16,16 @@ def predict_monthly(config, year_analysis, specie, model_year):
     paths = config["paths"]
     dataset_path = Path(paths["processed_data"]["global_dataset"], f"{year_analysis}_global_clima_lulc_pop_res_0.25_deg.csv")
     inference_dataset = pd.read_csv(dataset_path)
+
+    print(dataset_path)
     #TODO check the validity of loaded dataset: no NaN values, no inf valuess, etc
 
     model = ClimademicMonthlyModel()
     model_name = f"{specie}/{model_year}_ocsvm_{specie}_quantile_75.model'"
-    model_path = Path(paths["model_parameters"]["models_directory"], model_name)
+    model_path = Path(paths["models_directory"], model_name)
     model.load(model_path)
     
-    scaler_path = Path(paths["model_parameters"]["models_directory"], f"{specie}/scaler")
+    scaler_path = Path(paths["models_directory"], f"{specie}/scaler")
     scaler = joblib.load(scaler_path)
 
     monthly_fpath_dir = Path(paths["predictions"], f"{specie}", f"{year_analysis}")
