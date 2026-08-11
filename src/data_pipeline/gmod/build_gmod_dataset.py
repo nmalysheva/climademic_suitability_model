@@ -5,7 +5,6 @@ from src.data_pipeline.gmod.extract_observations import extract_observations
 from src.data_pipeline.gmod.extract_climate import extract_climate_features
 from src.data_pipeline.gmod.extract_land_use import extract_land_use_features
 from src.data_pipeline.gmod.extract_population import extract_population_features
-from config import CONFIG
 
 def get_gmod_observations(year_start, year_end, config):
     paths = config["paths"]     

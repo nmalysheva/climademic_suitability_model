@@ -6,7 +6,6 @@ from src.data_pipeline.training.observation_mask import build_observation_mask
 from src.data_pipeline.training.extract_climate import extract_climate_features
 from src.data_pipeline.training.extract_land_use import extract_land_use_features
 from src.data_pipeline.training.extract_population import extract_population_features
-from config import CONFIG
 
 #TODO here, duplictes are not checked in any way. Add a duplicate check /removal? 
 
