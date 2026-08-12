@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from src.models.monthly_model.monthly_climademic_model import ClimademicMonthlyModel
 from src.workflows.tune_hyperparameters import calculate_median, grid_search_params
-from config import CONFIG
 
 _columns_list=['t2m_q_0.75', 'd2m_q_0.75', 'tp_q_0.75', 'si10_q_0.75',
                'pop_density', 'Ocean', 'Urban',
@@ -110,13 +109,28 @@ def update_training_datasets(X_train, y_train, features,
 
     return X_train, y_train
 
+def _save_training_dataset(X_train, scaler, path):
+    """Save the accumulated training dataset in its original feature scale."""
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    X_train_array = np.asarray(X_train, dtype=float)
+
+    # Convert scaled values back to their original scale.
+    X_train_unscaled = scaler.inverse_transform(X_train_array)
+
+    training_df = pd.DataFrame(X_train_unscaled, columns=_columns_list)
+    training_df.to_csv(output_path, index=False)
+
 #TODO check years to be correct
-def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_end):
+def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_end, save_intermediate_training=False, intermediate_training_years=[]):
+    #TODO check intermediate datastet years against gmod years
+    intermediate_training_years = np.array(intermediate_training_years)
     paths = config["paths"]
     vector = f"Aedes {specie}"
 
     #path for saving trained models
-    models_dir = Path(paths["model_parameters"]["models_directory"])
+    models_dir = Path(paths["models_directory"])
     
     training_df =load_training_data(paths["processed_data"]["training_dataset"], vector)
     training_df_quantiles = calculate_quantiles(training_df)
@@ -126,11 +140,11 @@ def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_en
     X_train, y_train, X_test, y_test, scaler  = prepare_training_dataset(training_df_quantiles)
     save_scaler(scaler, Path(models_dir, specie, "scaler")) #save for future inference
 
-    best= grid_search_params(X_train, y_train, X_test, y_test)
-    params = f"-s 2 -t 2 -g {best["gamma"]} -n {best["nu"]} -b 1 -q"
-    #params = f"-s 2 -t 2 -g 0.005613174537956068 -n 0.08 -b 1 -q"
+    gamma = config["hyperparameters"][specie]["gamma"]
+    nu = config["hyperparameters"][specie]["nu"]
 
-    #model = ClimademicMonthlyModel(params="-s 2 -t 2 -g 0.03 -n 0.03 -b 1")
+    params = f"-s 2 -t 2 -g {gamma} -n {nu} -b 1 -q"
+
     model = ClimademicMonthlyModel(params=params)
     model.train(X_train, y_train)
     
@@ -168,3 +182,10 @@ def train_climademic_monthly_model(config, specie, gmod_year_start, gmod_year_en
         model.save(model_path)
 
         print(f"Model for year {year} is trained and saved as {model_path}")
+
+        if (save_intermediate_training & np.isin(year, intermediate_training_years)):
+            interm_fname = f"{year}_{specie}_intermediate_training_ds.csv"
+            inerm_fpath = Path(models_dir, specie, "intermediate_training_data", interm_fname)
+            _save_training_dataset(X_train, scaler, inerm_fpath)
+            print(f"Training data for year {year} is saved as {inerm_fpath}")
+    
