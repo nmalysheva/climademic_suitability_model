@@ -14,7 +14,7 @@ def get_file (dir_path, mask):
     directory = Path(dir_path)
     file = next(directory.glob(mask), None) 
     if file is None:
-        raise FileNotFoundError(f"No file found in directory: {directory}")
+        raise FileNotFoundError(f"No file matching {mask} found in {directory}")
     return file
 
 # Get window bounds for the given bounds.
