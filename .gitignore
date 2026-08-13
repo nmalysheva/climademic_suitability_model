@@ -10,6 +10,8 @@ artifacts/ts/
 notebooks/monthly_model/
 src/models/yearly_model/
 
+src/workflows/tune_hyperparameters.py
+
 #Ignore cache
 __pycache__/
 *.pyc
