@@ -1,6 +1,6 @@
 # Climademic Suitability model
 ## About
-This repository contains the workflow pipeline for training and inferencing the Climademic Suitability Model, as described in [XXX]. The model combines One-Class Support Vector Machines (OC-SVM) with an incremental learning strategy to continuously update suitability predictions using newly available mosquito occurrence observations.
+This repository contains the workflow pipeline for training and inferencing the Climademic Suitability Model, as described in the [article](https://doi.org/10.64898/2026.04.17.719149). The model combines One-Class Support Vector Machines (OC-SVM) with an incremental learning strategy to continuously update suitability predictions using newly available mosquito occurrence observations.
 
 ## Workflow Overview
 
@@ -61,7 +61,7 @@ The model should be trained separately for each mosquito species (Aedes aegypti,
 Each species-specific model is trained and updated using occurrence records and environmental data corresponding only to that species, allowing the model to capture differences in their ecological niches and environmental suitability requirements.
 
 ## Implementation
-#TODO: add
+The current implementation is a collection of procedural scripts and has not yet been refactored into classes or packaged as an installable Python package.
 
 
 ## Current limitations
