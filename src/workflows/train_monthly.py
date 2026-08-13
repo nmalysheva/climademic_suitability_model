@@ -5,7 +5,6 @@ import joblib
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from src.models.monthly_model.monthly_climademic_model import ClimademicMonthlyModel
-from src.workflows.tune_hyperparameters import calculate_median, grid_search_params
 
 _columns_list=['t2m_q_0.75', 'd2m_q_0.75', 'tp_q_0.75', 'si10_q_0.75',
                'pop_density', 'Ocean', 'Urban',
